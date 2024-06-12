@@ -1,5 +1,5 @@
 import {ethers} from "ethers";
-import Web3Modal from "web3-modal";
+import Web3Modal from "web3modal";
 
 //CHECK WALLET CONNECTIOn
 export const checkIfWalletConnected = async () => {
@@ -61,8 +61,8 @@ export const CALLING_CONTRACT = async(CONTRACT_ADDRESS, CONTRACT_ABI) => {
     const provider = new ethers.providers.Web3Provider(connection);
     const PROVIDER = provider.getSigner();
 
-    const contract =  FETCH_CONTRACT(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-    
+    const contract =  FETCH_CONTRACT(CONTRACT_ADDRESS, CONTRACT_ABI, PROVIDER);
+    return contract;
   }catch (error){
     console.log(error);
   }
