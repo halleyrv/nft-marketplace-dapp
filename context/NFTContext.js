@@ -115,7 +115,7 @@ export const NFTProvider = ({ children }) => {
       // LISTING FEES
       const listingFee = await NFT_MARKETPLACE_CONTRACT.getListingPrice();
       setNftListingFees(
-        ethers.utils.formatUnits(listingFee.toString(),"ether");
+        ethers.utils.formatUnits(listingFee.toString(),"ether")
       );
 
       const data = await NFT_MARKETPLACE_CONTRACT.fechMarketItems();
@@ -377,7 +377,7 @@ export const NFTProvider = ({ children }) => {
     const transaction = !listingPrice ? await NFT_MARKETPLACE_CONTRACT.createToken(url,price, _tokenPrice, {
       value:listingPrice.toString(),
     }) 
-    : await NFT_MARKETPLACE_CONTRACT.resellToken(id,price {
+    : await NFT_MARKETPLACE_CONTRACT.resellToken(id,price, {
       value:listingPrice.toString(),
     });
 
