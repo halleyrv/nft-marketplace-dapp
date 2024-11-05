@@ -22,7 +22,11 @@ import {
   DONATION_ADDRESS,
 } from "./constants";
 
-import { CALLING_CONTRACT } from "../utils/contract";
+import {
+  getBalance,
+  checkIfWalletConnected,
+  CALLING_CONTRACT
+} from "../utils/contract";
 import community from '../pages/community';
 
 export const NFTContext = React.createContext();
@@ -43,6 +47,24 @@ export const NFTProvider = ({ children }) => {
   const [nftBids, setNftBids] = useState([]);
   const [nftContractBalance, setNftContractBalance] = useState();
   const [nftListingFees, setNftListingFees] = useState();
+
+  // TRANSFER FUND CONTRACT
+  const [allTransferHistory, setAllTransferHistory] = useState([]);
+
+  // SUPPORT CONTRACT
+  const [allSupportMsg, setAllSupportMsg] = useState([]);
+  // TOKEN SALE STATE VARIABLE
+  const [address, setAddress] = useState();
+  const [balance, setBalance] = useState();
+  const [nativeToken, setNativeToken] = useState();
+  const [tokenHolders, setTokenHolders] = useState([]);
+  const [tokenSale, setTokenSale] = useState();
+  const [currentHolders, setCurrentHolders] = useState();
+
+  // DONATION CONTRACT
+  const [donationBalance, setDonationBalance] = useState();
+  const [allDonorList, setAllDonorList] = useState([]);
+
 
   //CHECK WALLET CONNECTION
   const checkIfWalletConnected = async () => {
@@ -108,19 +130,19 @@ export const NFTProvider = ({ children }) => {
       // FETCH CONTRACT BALANCE
 
       const nftConBal = await NFT_MARKETPLACE_CONTRACT.getContractBalance();
-      setNftConBalance(
+      setNftContractBalance(
         ethers.utils.formatUnits(nftConBal.toString(), "ether")
       );
 
       // LISTING FEES
       const listingFee = await NFT_MARKETPLACE_CONTRACT.getListingPrice();
       setNftListingFees(
-        ethers.utils.formatUnits(listingFee.toString(),"ether")
+        ethers.utils.formatUnits(listingFee.toString(), "ether")
       );
 
-      const data = await NFT_MARKETPLACE_CONTRACT.fechMarketItems();
+      const data = await NFT_MARKETPLACE_CONTRACT.fetchMarketItems();
 
-      const items = await Promise.all(data.map(async({
+      const items = await Promise.all(data.map(async ({
         tokenId,
         auction,
         seller,
@@ -135,7 +157,7 @@ export const NFTProvider = ({ children }) => {
       }) => {
         const tokenURI = await NFT_MARKETPLACE_CONTRACT.tokenURI(tokenId);
         const {
-          data: { image, name, description, category},
+          data: { image, name, description, category },
         } = await axios.get(tokenURI);
         const price = ethers.utils.formatUnits(unformattedPrice.toString(), "ether");
 
@@ -160,11 +182,11 @@ export const NFTProvider = ({ children }) => {
 
         }
       }
-    ));
+      ));
 
-    return items;
-      
-    }catch (error){
+      return items;
+
+    } catch (error) {
       console.log(error);
     }
   }
@@ -176,7 +198,7 @@ export const NFTProvider = ({ children }) => {
   }, []);
 
   // FETCH LISTED AND CREATED NFT
-  const fetchMyNFTsOrCreated = async (type) => {
+  const fetchMyNFTsOrCreatedSessions = async (type) => {
     try {
       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
@@ -185,11 +207,11 @@ export const NFTProvider = ({ children }) => {
       console.log(NFT_MARKETPLACE_CONTRACT);
 
       const data =
-       type === "fetchItemsListed" 
-        ? await NFT_MARKETPLACE_CONTRACT.fetchItems.fetchItemsListed() 
-        : await NFT_MARKETPLACE_CONTRACT.fetchMyNFTs();
+        type === "fetchItemsListed"
+          ? await NFT_MARKETPLACE_CONTRACT.fetchItems.fetchItemsListed()
+          : await NFT_MARKETPLACE_CONTRACT.fetchMyNFTs();
 
-      const items = await Promise.all(data.map(async({
+      const items = await Promise.all(data.map(async ({
         tokenId,
         auction,
         seller,
@@ -204,7 +226,7 @@ export const NFTProvider = ({ children }) => {
       }) => {
         const tokenURI = await NFT_MARKETPLACE_CONTRACT.tokenURI(tokenId);
         const {
-          data: { image, name, description, category},
+          data: { image, name, description, category },
         } = await axios.get(tokenURI);
         const price = ethers.utils.formatUnits(unformattedPrice.toString(), "ether");
 
@@ -229,11 +251,11 @@ export const NFTProvider = ({ children }) => {
 
         }
       }
-    ));
+      ));
 
-    return items;
-      
-    }catch (error){
+      return items;
+
+    } catch (error) {
       console.log(error);
     }
   }
@@ -247,10 +269,10 @@ export const NFTProvider = ({ children }) => {
       );
       console.log(NFT_MARKETPLACE_CONTRACT);
 
-      const data = await NFT_MARKETPLACE_CONTRACT.fetchItems.fetchMarketAuctionItems() 
-        
+      const data = await NFT_MARKETPLACE_CONTRACT.fetchItems.fetchMarketAuctionItems()
 
-      const items = await Promise.all(data.map(async({
+
+      const items = await Promise.all(data.map(async ({
         tokenId,
         auction,
         seller,
@@ -265,7 +287,7 @@ export const NFTProvider = ({ children }) => {
       }) => {
         const tokenURI = await NFT_MARKETPLACE_CONTRACT.tokenURI(tokenId);
         const {
-          data: { image, name, description, category},
+          data: { image, name, description, category },
         } = await axios.get(tokenURI);
         const price = ethers.utils.formatUnits(unformattedPrice.toString(), "ether");
 
@@ -290,11 +312,11 @@ export const NFTProvider = ({ children }) => {
 
         }
       }
-    ));
+      ));
 
-    return items;
-      
-    }catch (error){
+      return items;
+
+    } catch (error) {
       console.log(error);
     }
   }
@@ -308,10 +330,10 @@ export const NFTProvider = ({ children }) => {
       );
       console.log(NFT_MARKETPLACE_CONTRACT);
 
-      const data = await NFT_MARKETPLACE_CONTRACT.fetchItems.fetchItemsAuctionListed(); 
-        
+      const data = await NFT_MARKETPLACE_CONTRACT.fetchItems.fetchItemsAuctionListed();
 
-      const items = await Promise.all(data.map(async({
+
+      const items = await Promise.all(data.map(async ({
         tokenId,
         auction,
         seller,
@@ -326,7 +348,7 @@ export const NFTProvider = ({ children }) => {
       }) => {
         const tokenURI = await NFT_MARKETPLACE_CONTRACT.tokenURI(tokenId);
         const {
-          data: { image, name, description, category},
+          data: { image, name, description, category },
         } = await axios.get(tokenURI);
         const price = ethers.utils.formatUnits(unformattedPrice.toString(), "ether");
 
@@ -351,17 +373,17 @@ export const NFTProvider = ({ children }) => {
 
         }
       }
-    ));
+      ));
 
-    return items;
-      
-    }catch (error){
+      return items;
+
+    } catch (error) {
       console.log(error);
     }
   }
 
   // CREATE NFT
-  const createSale = async(url,formInputPrice, tokenPrice, isReselling, id) => {
+  const createSale = async (url, formInputPrice, tokenPrice, isReselling, id) => {
     const price = ethers.utils.parseUnits(formInputPrice, "ethers");
 
     const tokens = tokenPrice.toString();
@@ -374,20 +396,20 @@ export const NFTProvider = ({ children }) => {
 
     const listingPrice = await NFT_MARKETPLACE_CONTRACT.getListingPrice();
 
-    const transaction = !listingPrice ? await NFT_MARKETPLACE_CONTRACT.createToken(url,price, _tokenPrice, {
-      value:listingPrice.toString(),
-    }) 
-    : await NFT_MARKETPLACE_CONTRACT.resellToken(id,price, {
-      value:listingPrice.toString(),
-    });
+    const transaction = !listingPrice ? await NFT_MARKETPLACE_CONTRACT.createToken(url, price, _tokenPrice, {
+      value: listingPrice.toString(),
+    })
+      : await NFT_MARKETPLACE_CONTRACT.resellToken(id, price, {
+        value: listingPrice.toString(),
+      });
 
     await transaction.wait();
     router.push("/my-account");
-    
+
   };
 
   //BUY NFT
-  const buyNft = async(nft)=> {
+  const buyNFT = async (nft) => {
     const price = ethers.utils.parseUnits(nft.price.toString(), "ether");
 
     const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
@@ -396,7 +418,7 @@ export const NFTProvider = ({ children }) => {
     );
 
     const transaction = await NFT_MARKETPLACE_CONTRACT.createMarketSale(
-      nft.tokenId, 
+      nft.tokenId,
       {
         value: price,
       }
@@ -407,7 +429,7 @@ export const NFTProvider = ({ children }) => {
 
   // BUY NFT WITH NATIVE TOKEN
 
-  const buyNFTTerc20 = async (nft) => {
+  const buyNFTerc20 = async (nft) => {
     try {
       const tokens = nft.tokenPrice.toString();
       const transferAmount = ethers.utils.parseEther(tokens);
@@ -441,24 +463,24 @@ export const NFTProvider = ({ children }) => {
   }
 
   // CREATE AUCTION
-  const setAuction = async(nft, endDateTime) => {
-    const {tokenId, price} = nft;
+  const setAuction = async (nft, endDateTime) => {
+    const { tokenId, price } = nft;
     const auctionPrice = ethers.utils.parseUnits(price.toString(), "ether");
     try {
-       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
+      const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
         NFT_MARKETPLACE_ABI
-       );
+      );
 
-       const transaction = await NFT_MARKETPLACE_CONTRACT.createAuctionListing(
-        auctionPrice, 
-        Number(tokenId), 
+      const transaction = await NFT_MARKETPLACE_CONTRACT.createAuctionListing(
+        auctionPrice,
+        Number(tokenId),
         Math.trunc(endDateTime)
-       );
+      );
 
-       await transaction.wait();
-       console.log(transaction);
-       router.push("/my-account");
+      await transaction.wait();
+      console.log(transaction);
+      router.push("/my-account");
 
     } catch (error) {
       console.log(error);
@@ -466,22 +488,22 @@ export const NFTProvider = ({ children }) => {
   }
 
   // BIDDING NFT
-  const bidAuction = async(tokenId, bidAmount) => {
+  const bidAuction = async (tokenId, bidAmount) => {
     try {
       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
         NFT_MARKETPLACE_ABI
       );
-      
+
       const userBid = ethers.utils.parseUnits(bidAmount.toString(), "ether");
-      const transaction = await NFT_MARKETPLACE_CONTRACT.bid(Number(tokenId),{
+      const transaction = await NFT_MARKETPLACE_CONTRACT.bid(Number(tokenId), {
         value: userBid
       });
 
       await transaction.wait();
       console.log(transaction);
       router.push("my-account");
-      
+
     } catch (error) {
       console.log(error);
     }
@@ -489,13 +511,13 @@ export const NFTProvider = ({ children }) => {
 
   // NFT WITHDRAW FUNCTION FUND
 
-  const nftWithdraw = async() => {
+  const nftWithdraw = async () => {
     try {
       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
         NFT_MARKETPLACE_ABI
       );
-      
+
       const transaction = await NFT_MARKETPLACE_CONTRACT.withdraw();
       await transaction.wait();
       console.log(transaction);
@@ -507,7 +529,7 @@ export const NFTProvider = ({ children }) => {
   }
 
   // UPDATE NFT LISTING FEE
-  const updateNFTListingFee = async(listingFee) => {
+  const updateNFTListingFee = async (listingFee) => {
     try {
       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
@@ -545,7 +567,7 @@ export const NFTProvider = ({ children }) => {
   }
 
   // COMPLETE Auction
-  const completeAuction = async() => {
+  const completeAuction = async () => {
     try {
       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
@@ -564,7 +586,7 @@ export const NFTProvider = ({ children }) => {
     }
   }
 
-  const getHigestBidder = async() => {
+  const getHigestBidder = async () => {
     try {
       const NFT_MARKETPLACE_CONTRACT = await CALLING_CONTRACT(
         NFT_MARKETPLACE_ADDRESS,
@@ -577,13 +599,13 @@ export const NFTProvider = ({ children }) => {
       const higestBidderAmount = await NFT_MARKETPLACE_CONTRACT.bids(
         Number(tokenId),
         higestBidder
-      ); 
+      );
 
       // LIST of Bidders
       const listOfBidders = await NFT_MARKETPLACE_CONTRACT.getBidders();
 
       const allBiddingList = [];
-      listOfBidders.map(async(bidder)=>{
+      listOfBidders.map(async (bidder) => {
         const singleBid = await NFT_MARKETPLACE_CONTRACT.bids(
           Number(tokenId),
           bidder
@@ -595,9 +617,9 @@ export const NFTProvider = ({ children }) => {
         allBiddingList.push(single);
       });
 
-      
+
       setNftBids(allBiddingList.reverse());
-      
+
       const higestBidUser = {
         address: higestBidder,
         value: ethers.utils.formatUnits(higestBidderAmount.toString(), "ether"),
@@ -611,12 +633,572 @@ export const NFTProvider = ({ children }) => {
     }
   }
 
-  // END OF NFT CONTRACT
+  // TRANSFER FUNDS CONTRACT SECTION
+  const loadTransferHistory = async () => {
+    try {
+      const TRANSFER_FUND_CONTRACT = await CALLING_CONTRACT(
+        TRANSFER_FUND_ADDRESS,
+        TRANSFER_FUND_ABI
+      );
+      const transferHistory = await TRANSFER_FUND_CONTRACT.getTransferHistory();
+      const transferHistoryInfo = await Promise.all(
+        transferHistory.map(
+          async ({ recipient, name, description, amount, to, from }) => {
+            const amountTransfer = ethers.utils.formatUnits(
+              amount.toString(),
+              "ether"
+            );
+            return {
+              recipient,
+              name,
+              description,
+              amountTransfer,
+              to,
+              from,
+            };
+          }
+        ));
+      setAllTransferHistory(transferHistoryInfo);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
+  // GET USER TRANSFER
+  const getUserTransferFundHistory = async () => {
+    const TRANSFER_FUND_CONTRACT = await CALLING_CONTRACT(
+      TRANSFER_FUND_ADDRESS,
+      TRANSFER_FUND_ABI
+    );
+
+    const transferHistory = await TRANSFER_FUND_CONTRACT.getUserTransferHistory();
+    const transferData = await Promise.all(
+      transferHistory.map(
+        async ({ recipient, name, description, amount, to, from }) => {
+          const amountTransfer = ethers.utils.formatUnits(
+            amount.toString(),
+            "ether"
+          );
+          return {
+            recipient,
+            name,
+            description,
+            amountTransfer,
+            to,
+            from,
+          };
+        }
+      ));
+    return transferData;
+  }
+
+  // TRANSFER FUNDS
+
+  const transferFunds = async (amount, name, description, recipient) => {
+    try {
+      const amountTransfer = ethers.utils.parseUnits(amount, "ether");
+      const TRANSFER_FUND_CONTRACT = await CALLING_CONTRACT(
+        TRANSFER_FUND_ADDRESS,
+        TRANSFER_FUND_ABI
+      );
+
+      await etherum.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: currentAccount,
+          to: recipient,
+          value: amountTransfer._hex,
+        }],
+      });
+      const transferFunds = await TRANSFER_FUND_CONTRACT.transfer(
+        recipient, name, description, amountTransfer
+      );
+      await transferFunds.wait();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // END TRANSFER FUND CONTRACT
+
+  // SUPPORT MESSAGE CONTRACT
+  const loadSupportData = async () => {
+    try {
+      const SUPPORT_CONTRACT = await CALLING_CONTRACT(
+        SUPPORT_ADDRESS,
+        SUPPORT_ABI
+      );
+
+      const allSupportMessage = await SUPPORT_CONTRACT.getMessageHistory();
+
+      const allMessageHistory = await Promise.all(
+        allSupportMessage.map(
+          async ({ from, timestamp, name, message, title }) => {
+            const amountTransfer = ethers.utils.formatUnits(
+              amount.toString(),
+              "ether"
+            );
+            return {
+              from,
+              timestamp,
+              name,
+              message,
+              title,
+            };
+          }
+        ));
+      setAllSupportMsg(allMessageHistory);
+
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+
+  // USER MESSGE HISTORY
+  const getUserMessageHistory = async () => {
+    try {
+      const SUPPORT_CONTRACT = await CALLING_CONTRACT(
+        SUPPORT_ADDRESS,
+        SUPPORT_ABI
+      );
+
+      const userHistory = await SUPPORT_CONTRACT.getUserMessageHistory();
+
+      const userMessageHistory = await Promise.all(
+        userHistory.map(
+          async ({ from, timestamp, name, message, title }) => {
+            const amountTransfer = ethers.utils.formatUnits(
+              amount.toString(),
+              "ether"
+            );
+            return {
+              from,
+              timestamp,
+              name,
+              message,
+              title,
+            };
+          }
+        ));
+      return userMessageHistory;
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // SEND MESSAGE
+
+  const sendSupportMessage = async (name, title, message) => {
+    try {
+      const SUPPORT_CONTRACT = await CALLING_CONTRACT(
+        SUPPORT_ADDRESS,
+        SUPPORT_ABI
+      );
+
+      const support = await SUPPORT_CONTRACT.sendMessage(name, title, message);
+      await support.wait()
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // END SUPPORT CONTRACT
+
+  // COMUNITY ACCOUNT
+  // CREATE ACCOUNT
+  const communityCreateAccount = async (name) => {
+    try {
+      const COMMUNITY_CONTRACT = await CALLING_CONTRACT(
+        COMMUNITY_ADDRESS,
+        COMMUNITY_ABI
+      );
+
+      const account = await checkIfWalletConnected();
+      const communityAccount = account ?
+        await COMMUNITY_CONTRACT.createAccount(name)
+        : "";
+
+      await communityAccount.wait();
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //GET ALL USER
+  const communityAllUser = async () => {
+    const COMMUNITY_CONTRACT = await CALLING_CONTRACT(
+      COMMUNITY_ADDRESS,
+      COMMUNITY_ABI
+    );
+
+    const account = await checkIfWalletConnected();
+    const allCommunityUsers = await COMMUNITY_CONTRACT.getAllAppUser();
+
+    const userLists =
+      account && (await Promise.all(
+        allCommunityUsers.map(async ({ accountAddress, name }) => {
+          return {
+            accountAddress,
+            name,
+          };
+        })
+      ));
+
+    return userLists;
+  }
+
+  // USER FRIEND LIST
+
+  const comunityUserFriendList = async () => {
+    try {
+      const COMMUNITY_CONTRACT = await CALLING_CONTRACT(
+        COMMUNITY_ADDRESS,
+        COMMUNITY_ABI
+      );
+
+      const data = await COMMUNITY_CONTRACT.getMyFriendList();
+
+      const items = await Promise.all(
+        data.map(async ({ pubkey, name }) => {
+          return {
+            pubkey,
+            name,
+          };
+
+        }))
+
+      return items;
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // USER MESSAGE
+  const communityUserMessage = async (address, currentUser) => {
+    try {
+      const COMMUNITY_CONTRACT = await CALLING_CONTRACT(
+        COMMUNITY_ADDRESS,
+        COMMUNITY_ABI
+      );
+
+      const getUserMessage = await COMMUNITY_CONTRACT.readMessage(address);
+      const activeUser = await COMMUNITY_CONTRACT.getUsername(currentUser);
+      const receiver = await COMMUNITY_CONTRACT.getUsername(address);
+
+      const message = await Promise.all(
+        getUserMessage.map(async ({ msg, message, timestamp }) => {
+          return {
+            msg,
+            sender,
+            message,
+            timestamp: timestamp.toNumber(),
+            receiver,
+            activeUser,
+          };
+        })
+      );
+
+      return message;
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // SEND MESSAGE
+  const communitySendMessage = async (address, message) => {
+    try {
+      const COMMUNITY_CONTRACT = await CALLING_CONTRACT(
+        COMMUNITY_ADDRESS,
+        COMMUNITY_ABI
+      );
+
+      const communityAccount = await COMMUNITY_CONTRACT.sendMessage(
+        address,
+        message
+      );
+
+      await communityAccount.wait();
+
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
+  // ADD FRIEND
+
+  const communityAddFriend = async (address, name) => {
+    try {
+      const COMMUNITY_CONTRACT = await CALLING_CONTRACT(
+        COMMUNITY_ADDRESS,
+        COMMUNITY_ABI
+      );
+
+      const comunityAccount = await COMMUNITY_CONTRACT.addFriend(
+        address,
+        name
+      );
+
+      await comunityAccount.wait();
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // TOKEN SALE CONTRACT
+  const fetchInitialData = async () => {
+    try {
+      // GET USER ACCOUNT
+      const account = await checkIfWalletConnected();
+      // GET USER BALANCE
+      const balance = await getBalance();
+      setBalance(ethers.utils.formatEther(balance.toString()));
+      setAddress(account);
+
+      // TOKEN CONTRACT
+      const TOKEN_CONTRACT = await CALLING_CONTRACT(
+        THE_BLOCKCHAIN_CODER_ADDRESS,
+        THE_BLOCKCHAIN_CODER_ABI
+      );
+
+      let tokenBalance;
+
+      if (account) {
+        tokenBalance = await TOKEN_CONTRACT.balanceOf(account);
+      } else {
+        tokenBalance = 0;
+      }
+
+      //CALLING TOKEN FUNCTION
+      const tokenName = await TOKEN_CONTRACT.name();
+      const tokenSymbol = await TOKEN_CONTRACT.symbol();
+      const tokenTotalSupply = await TOKEN_CONTRACT.totalSupply();
+      const tokenStandard = await TOKEN_CONTRACT.standard();
+      const tokenHolders = await TOKEN_CONTRACT._userId();
+      const tokenOwnerOfContract = await TOKEN_CONTRACT.ownerOfContract();
+      const tokenAddress = await TOKEN_CONTRACT.address();
+
+      const nativeToken = {
+        tokenAddress: tokenAddress,
+        tokenName: tokenName,
+        tokenSymbol: tokenSymbol,
+        tokenOwnerOfContract: tokenOwnerOfContract,
+        tokenStandard: tokenStandard,
+        tokenTotalSupply: ethers.utils.formatEther(tokenTotalSupply.toString()),
+        tokenBalance: ethers.utils.formatEther(tokenBalance.toString()),
+        tokenHolders: tokenHolders.toNumber(),
+      };
+
+      setNativeToken(nativeToken);
+
+      // GETTING TOKEN HOLDER DATA
+      const getTokenHolder = await TOKEN_CONTRACT.getTokenHolder();
+      setTokenHolders(getTokenHolder);
+
+      if (account) {
+        const getTokenHolderData = await TOKEN_CONTRACT.getTokenHolderData(account);
+
+        const currentHolder = {
+          tokenId: getTokenHolderData[0].toNumber(),
+          from: getTokenHolderData[1],
+          to: getTokenHolderData[2],
+          totalToken: ethers.utils.formatEther(
+            getTokenHolderData[3].toString()
+          ),
+          tokenHolder: getTokenHolderData[4],
+        };
+
+        setCurrentHolders(currentHolder);
+
+      }
+
+      // TOKEN SALE CONTRACT
+
+      const TOKEN_SALE_CONTRACT = await CALLING_CONTRACT(
+        TOKEN_SALE_ADDRESS,
+        TOKEN_SALE_ABI
+      );
+
+      const tokenPrice = await TOKEN_SALE_CONTRACT.tokenPrice();
+      const tokenSold = await TOKEN_SALE_CONTRACT.tokenSold();
+      // HERE ADD THE TOKEN_SALE FROM CONSTANT
+      const tokenSaleBalance = await TOKEN_SALE_CONTRACT.balanceOf("0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0");
+
+      const tokenSale = {
+        tokenPrice: ethers.utils.formatEther(tokenPrice.toString()),
+        tokenPrice: ethers.utils.formatEther(tokenSaleBalance.toString()),
+        tokenSold: tokenSold.toNumber(),
+      };
+
+      setTokenSale(tokenSale);
+
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
+  // BUY TOKEN
+
+  const buyToken = async (nToken) => {
+    try {
+      const amount = ethers.utils.parseUnits(nToken.ToString(), "ether");
+      const TOKEN_SALE_CONTRACT = await CALLING_CONTRACT(
+        TOKEN_SALE_ADDRESS,
+        TOKEN_SALE_ABI
+      );
+
+      const buying = await TOKEN_SALE_CONTRACT.buyTokens(nToken, {
+        value: amount.toString(),
+      });
+
+      await buying.wait();
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // INTERNAL FUNCTION OWNER
+  const transferNativeToken = async (from) => {
+    try {
+      const tokens = from.amount.toString();
+      const transferAmount = ethers.utils.parseEther(tokens);
+
+      // TOKEN CONTRACT
+      const TOKEN_CONTRACT = await CALLING_CONTRACT(
+        THE_BLOCKCHAIN_CODER_ADDRESS,
+        THE_BLOCKCHAIN_CODER_ABI
+      );
+
+      const transaction = await TOKEN_CONTRACT.transfer(
+        from.address,
+        transferAmount,
+      );
+
+      await transacton.wait();
+      window.location.reload();
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+  // ----- END OF TOKEN SALE / TOKEN CONTRACT ----
+
+
+  //DONATION
+
+  //DONATE FUND
+
+  const donate = async (amount) => {
+    try {
+      const DONATION_CONTRACT = await CALLING_CONTRACT(
+        DONATION_ADDRESS,
+        DONATION_ABI
+      );
+
+      const transferAmount = ethers.utils.parseUnits(
+        amount.toString(),
+        "ether"
+      );
+
+      const transaction = await DONATION_CONTRACT.donate({
+        value: transferAmount.toString(),
+      });
+
+      await transaction.wait();
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // GET DONATION BALANCE
+
+  const getContractBalance = async () => {
+    try {
+      const DONATION_CONTRACT = await CALLING_CONTRACT(
+        DONATION_ADDRESS,
+        DONATION_ABI
+      );
+
+      const donotList = await DONATION_CONTRACT.getAllDonors();
+
+      const parsedDonorList = donotList.map((donor) => ({
+        donor: donor.from,
+        value: ethers.utils.formatUnits(donor.value.toString(), "ether"),
+        timestamp: converTime(
+          donor.timestamp.toNumber() * 1000
+        ).toLocaleDateString(),
+      }));
+
+      setAllDonorList(parsedDonorList);
+
+      const donationBalance = await DONATION_CONTRACT.getContractBalance();
+      setDonationBalance(ethers.utils.formatEther(donationBalance.toString()));
+
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
+  // WITHDRAW
+  const withdraw = async (amount) => {
+    try {
+      const DONATION_CONTRACT = await CALLING_CONTRACT(
+        DONATION_ADDRESS,
+        DONATION_ABI
+      );
+
+
+      const transaction = await DONATION_CONTRACT.withdraw();
+
+      await transaction.wait();
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
 
   return (
-    <NFTContext.Provider value={{ NFT_MARKETPLACE }}>
+    <NFTContext.Provider
+      value={{
+        NFT_MARKETPLACE,
+        nftCurrency,
+        currentAccount,
+        isLoadingNFT,
+        auctionNFTInfo,
+        nftContractBalance,
+        nftListingFees,
+        nftBids,
+        notify,
+        buyNFTerc20,
+        getHigestBidder,
+        updateNFTListingFee,
+        completeAuction,
+        withdrawBid,
+        bidAuction,
+        buyNFT,
+        createSale,
+        fetchNFTs,
+        fetchMyNFTsOrCreatedSessions,
+        connectWallet,
+        setAuction,
+        fetchAuctionNFTs,
+        nftWithdraw,
+      }}>
       {children}
     </NFTContext.Provider>
   );
