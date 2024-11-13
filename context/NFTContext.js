@@ -528,6 +528,10 @@ export const NFTProvider = ({ children }) => {
     }
   }
 
+  useEffect(() => {
+    getContractBalance();
+  }, []);
+
   // UPDATE NFT LISTING FEE
   const updateNFTListingFee = async (listingFee) => {
     try {
@@ -1100,6 +1104,7 @@ export const NFTProvider = ({ children }) => {
   //DONATE FUND
 
   const donate = async (amount) => {
+
     try {
       const DONATION_CONTRACT = await CALLING_CONTRACT(
         DONATION_ADDRESS,
@@ -1142,6 +1147,7 @@ export const NFTProvider = ({ children }) => {
       }));
 
       setAllDonorList(parsedDonorList);
+      console.log(parsedDonorList);
 
       const donationBalance = await DONATION_CONTRACT.getContractBalance();
       setDonationBalance(ethers.utils.formatEther(donationBalance.toString()));
@@ -1198,6 +1204,7 @@ export const NFTProvider = ({ children }) => {
         setAuction,
         fetchAuctionNFTs,
         nftWithdraw,
+        donate,
       }}>
       {children}
     </NFTContext.Provider>

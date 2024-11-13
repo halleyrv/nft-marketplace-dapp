@@ -1,7 +1,7 @@
 import React from "react";
 
-const CreateItem = () => {
-  return <div>CreateItem</div>;
+const CreateNFT = () => {
+  return <div>CreateNFT</div>;
 };
 
-export default CreateItem;
+export default CreateNFT;
